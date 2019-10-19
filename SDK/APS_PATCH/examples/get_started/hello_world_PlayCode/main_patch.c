@@ -414,16 +414,6 @@ static void Main_AppInit_patch(void)
     {
         printf("To create the message queue for AppMessageQ is fail.\n");
     }
-    
-    // create the memory pool for AppMessageQ
-    tMemPoolDef.pool_sz = APP_MESSAGE_Q_SIZE;           // number of items (elements) in the pool
-    tMemPoolDef.item_sz = sizeof(S_MessageQ);           // size of an item
-    tMemPoolDef.pool = NULL;                            // reserved, it is no used
-    g_tAppMemPoolId = osPoolCreate(&tMemPoolDef);
-    if (g_tAppMemPoolId == NULL)
-    {
-        printf("To create the memory pool for AppMessageQ is fail.\n");
-    }
 }
 
 /*************************************************************************
@@ -452,7 +442,7 @@ static void Main_AppThread_1(void *argu)
         // send the message into AppMessageQ
         ulCount++;
         tMsg.ulCount = ulCount;
-        Main_AppMessageQSend(&tMsg);
+        osMessagePut(g_tAppMessageQ, (uint32_t)&tMsg, osWaitForever);
     }
 }
 
@@ -473,7 +463,6 @@ static void Main_AppThread_1(void *argu)
 static void Main_AppThread_2(void *argu)
 {
     osEvent tEvent;
-    S_MessageQ *ptMsgPool;
     
     while (1)
     {
@@ -485,60 +474,7 @@ static void Main_AppThread_2(void *argu)
             continue;
         }
         
-        // get the content of message
-        ptMsgPool = (S_MessageQ *)tEvent.value.p;
-        
         // output the contect of message
-        printf("Hello world %d\n", ptMsgPool->ulCount);
-        
-        // free the memory pool
-        osPoolFree(g_tAppMemPoolId, ptMsgPool);
+        printf("Hello world %d\n", ((S_MessageQ *)tEvent.value.p)->ulCount);
     }
-}
-
-/*************************************************************************
-* FUNCTION:
-*   Main_AppMessageQSend
-*
-* DESCRIPTION:
-*   send the message into AppMessageQ
-*
-* PARAMETERS
-*   1. ptMsg    : [In] the pointer of message content
-*
-* RETURNS
-*   osOK        : successful
-*   osErrorOS   : fail
-*
-*************************************************************************/
-static osStatus Main_AppMessageQSend(S_MessageQ *ptMsg)
-{
-    osStatus tRet = osErrorOS;
-    S_MessageQ *ptMsgPool;
-    
-    // allocate the memory pool
-    ptMsgPool = (S_MessageQ *)osPoolCAlloc(g_tAppMemPoolId);
-    if (ptMsgPool == NULL)
-    {
-        printf("To allocate the memory pool for AppMessageQ is fail.\n");
-        goto done;
-    }
-    
-    // copy the message content
-    memcpy(ptMsgPool, ptMsg, sizeof(S_MessageQ));
-    
-    // send the message
-    if (osOK != osMessagePut(g_tAppMessageQ, (uint32_t)ptMsgPool, osWaitForever))
-    {
-        printf("To send the message for AppMessageQ is fail.\n");
-        
-        // free the memory pool
-        osPoolFree(g_tAppMemPoolId, ptMsgPool);
-        goto done;
-    }
-    
-    tRet = osOK;
-
-done:
-    return tRet;
 }
