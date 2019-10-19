@@ -84,7 +84,6 @@ Declaration of static Global Variables & Functions
 static osThreadId g_tAppThread_1;
 static osThreadId g_tAppThread_2;
 static osMessageQId g_tAppMessageQ;
-static osPoolId g_tAppMemPoolId;
 static E_IO01_UART_MODE g_eAppIO01UartMode;
 
 // Sec 7: declaration of static function prototype
@@ -95,7 +94,6 @@ static void Main_FlashLayoutUpdate(void);
 static void Main_AppInit_patch(void);
 static void Main_AppThread_1(void *argu);
 static void Main_AppThread_2(void *argu);
-static osStatus Main_AppMessageQSend(S_MessageQ *ptMsg);
 static void Main_MiscDriverConfigSetup(void);
 static void Main_AtUartDbgUartSwitch(void);
 static void Main_MiscModulesInit(void);
@@ -377,33 +375,13 @@ static void Main_ApsUartRxDectecCb(E_GpioIdx_t tGpioIdx)
 *************************************************************************/
 static void Main_AppInit_patch(void)
 {
-    osThreadDef_t tThreadDef;
     osMessageQDef_t tMessageDef;
-    osPoolDef_t tMemPoolDef;
-    
-    // create the thread for AppThread_1
-    tThreadDef.name = "App_1";
-    tThreadDef.pthread = Main_AppThread_1;
-    tThreadDef.tpriority = OS_TASK_PRIORITY_APP;        // osPriorityNormal
-    tThreadDef.instances = 0;                           // reserved, it is no used
-    tThreadDef.stacksize = OS_TASK_STACK_SIZE_APP;      // (512), unit: 4-byte, the size is 512*4 bytes
-    g_tAppThread_1 = osThreadCreate(&tThreadDef, NULL);
-    if (g_tAppThread_1 == NULL)
-    {
-        printf("To create the thread for AppThread_1 is fail.\n");
-    }
-    
-    // create the thread for AppThread_2
-    tThreadDef.name = "App_2";
-    tThreadDef.pthread = Main_AppThread_2;
-    tThreadDef.tpriority = OS_TASK_PRIORITY_APP;        // osPriorityNormal
-    tThreadDef.instances = 0;                           // reserved, it is no used
-    tThreadDef.stacksize = OS_TASK_STACK_SIZE_APP;      // (512), unit: 4-byte, the size is 512*4 bytes
-    g_tAppThread_2 = osThreadCreate(&tThreadDef, NULL);
-    if (g_tAppThread_2 == NULL)
-    {
-        printf("To create the thread for AppThread_2 is fail.\n");
-    }
+	
+	// create the task for AppThread_1
+	xTaskCreate(Main_AppThread_1, "App_1", OS_TASK_STACK_SIZE_APP, NULL, OS_TASK_PRIORITY_APP, g_tAppThread_1);
+
+	// create the task for AppThread_2
+	xTaskCreate(Main_AppThread_2, "App_2", OS_TASK_STACK_SIZE_APP, NULL, OS_TASK_PRIORITY_APP, g_tAppThread_2);
     
     // create the message queue for AppMessageQ
     tMessageDef.queue_sz = APP_MESSAGE_Q_SIZE;          // number of elements in the queue
