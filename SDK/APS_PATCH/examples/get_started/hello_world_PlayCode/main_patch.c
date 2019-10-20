@@ -83,7 +83,6 @@ Declaration of static Global Variables & Functions
 // Sec 6: declaration of static global variable
 static osThreadId g_tAppThread_1;
 static osThreadId g_tAppThread_2;
-static osMessageQId g_tAppMessageQ;
 static E_IO01_UART_MODE g_eAppIO01UartMode;
 
 // Sec 7: declaration of static function prototype
@@ -373,25 +372,20 @@ static void Main_ApsUartRxDectecCb(E_GpioIdx_t tGpioIdx)
 *   none
 *
 *************************************************************************/
+#include "queue.h"
+QueueHandle_t xQueue1;
 static void Main_AppInit_patch(void)
 {
-    osMessageQDef_t tMessageDef;
-	
 	// create the task for AppThread_1
 	xTaskCreate(Main_AppThread_1, "App_1", OS_TASK_STACK_SIZE_APP, NULL, OS_TASK_PRIORITY_APP, g_tAppThread_1);
 
 	// create the task for AppThread_2
 	xTaskCreate(Main_AppThread_2, "App_2", OS_TASK_STACK_SIZE_APP, NULL, OS_TASK_PRIORITY_APP, g_tAppThread_2);
     
-    // create the message queue for AppMessageQ
-    tMessageDef.queue_sz = APP_MESSAGE_Q_SIZE;          // number of elements in the queue
-    tMessageDef.item_sz = sizeof(S_MessageQ);           // size of an item
-    tMessageDef.pool = NULL;                            // reserved, it is no used
-    g_tAppMessageQ = osMessageCreate(&tMessageDef, g_tAppThread_2);
-    if (g_tAppMessageQ == NULL)
-    {
-        printf("To create the message queue for AppMessageQ is fail.\n");
-    }
+    // create the message queue for AppMessageQ	
+	xQueue1 = xQueueCreate( APP_MESSAGE_Q_SIZE, // The number of items the queue can hold.
+							sizeof(S_MessageQ));	  // The size of each item in the queue
+
 }
 
 /*************************************************************************
@@ -415,12 +409,10 @@ static void Main_AppThread_1(void *argu)
     
     while (1)
     {
-        osDelay(1000);      // delay 1000ms (1sec)
-        
         // send the message into AppMessageQ
         ulCount++;
         tMsg.ulCount = ulCount;
-        osMessagePut(g_tAppMessageQ, (uint32_t)&tMsg, osWaitForever);
+		xQueueSend(xQueue1, (void *) &tMsg, 1000/portTICK_PERIOD_MS);
     }
 }
 
@@ -440,19 +432,13 @@ static void Main_AppThread_1(void *argu)
 *************************************************************************/
 static void Main_AppThread_2(void *argu)
 {
-    osEvent tEvent;
+	S_MessageQ tMsg;
     
     while (1)
-    {
-        // receive the message from AppMessageQ
-        tEvent = osMessageGet(g_tAppMessageQ, osWaitForever);
-        if (tEvent.status != osEventMessage)
-        {
-            printf("To receive the message from AppMessageQ is fail.\n");
-            continue;
-        }
-        
-        // output the contect of message
-        printf("Hello world %d\n", ((S_MessageQ *)tEvent.value.p)->ulCount);
+    {        
+		if( xQueueReceive( xQueue1, &tMsg, 1000/portTICK_PERIOD_MS) )
+		{
+			printf("Hello world %d\n", tMsg.ulCount);
+		}       
     }
 }
