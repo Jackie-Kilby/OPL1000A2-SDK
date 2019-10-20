@@ -51,10 +51,11 @@ Head Block of The File
 #include "hal_vic.h"
 #include "boot_sequence.h"
 #include "at_cmd_common_patch.h"
+#include "queue.h"
 
 // Sec 2: Constant Definitions, Imported Symbols, miscellaneous
 // the number of elements in the message queue
-#define APP_MESSAGE_Q_SIZE  16
+#define APP_MESSAGE_Q_SIZE  2
 
 
 /********************************************
@@ -81,8 +82,9 @@ Declaration of Global Variables & Functions
 Declaration of static Global Variables & Functions
 ***************************************************/
 // Sec 6: declaration of static global variable
-static osThreadId g_tAppThread_1;
-static osThreadId g_tAppThread_2;
+static TaskHandle_t g_tAppThread_1;
+static TaskHandle_t g_tAppThread_2;
+static QueueHandle_t xQueue1;
 static E_IO01_UART_MODE g_eAppIO01UartMode;
 
 // Sec 7: declaration of static function prototype
@@ -372,8 +374,6 @@ static void Main_ApsUartRxDectecCb(E_GpioIdx_t tGpioIdx)
 *   none
 *
 *************************************************************************/
-#include "queue.h"
-QueueHandle_t xQueue1;
 static void Main_AppInit_patch(void)
 {
 	// create the task for AppThread_1
@@ -383,9 +383,7 @@ static void Main_AppInit_patch(void)
 	xTaskCreate(Main_AppThread_2, "App_2", OS_TASK_STACK_SIZE_APP, NULL, OS_TASK_PRIORITY_APP, g_tAppThread_2);
     
     // create the message queue for AppMessageQ	
-	xQueue1 = xQueueCreate( APP_MESSAGE_Q_SIZE, // The number of items the queue can hold.
-							sizeof(S_MessageQ));	  // The size of each item in the queue
-
+	xQueue1 = xQueueCreate( APP_MESSAGE_Q_SIZE, sizeof(S_MessageQ));
 }
 
 /*************************************************************************
