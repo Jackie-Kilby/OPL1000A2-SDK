@@ -332,6 +332,32 @@ static void Main_FlashLayoutUpdate(void)
 {
     // update here
 }
+static void timer_task(void *argu)  
+{  
+    static int state = 0;  
+    while (1) {  
+        printf("----%d\n", osKernelSysTick());  
+          
+        if (state == 3 && osKernelSysTick() > 40000) {  
+            state = 4;  
+            printf("Timer Start\n");  
+	        osTimerStart(g_tAppTimerId, 2000);   
+	    } else if(state == 2 && osKernelSysTick() > 30000) {  
+            state = 3;  
+			printf("Timer Delete\n");  
+            osTimerDelete(g_tAppTimerId);  
+        } else if (state == 1 && osKernelSysTick() > 20000) {  
+            state = 2;  
+            printf("Timer Start\n");  
+			osTimerStart(g_tAppTimerId, 2000);   
+        } else if(state == 0 && osKernelSysTick() > 10000) {  
+            state = 1;  
+            printf("Timer Stop\n");  
+            osTimerStop(g_tAppTimerId);  
+        }  
+        osDelay(1000);  
+    }  
+}  
 
 /*************************************************************************
 * FUNCTION:
@@ -378,6 +404,8 @@ static void Main_AppInit_patch(void)
         printf("To create the thread for AppThread_2 is fail.\n");
     }
     
+	xTaskCreate(timer_task, "timer_task", 128, NULL, 0, NULL);
+	
     // create the semaphore
     tSemaphoreDef.dummy = 0;                            // reserved, it is no used
     g_tAppSemaphoreId = osSemaphoreCreate(&tSemaphoreDef, 1);
@@ -396,7 +424,7 @@ static void Main_AppInit_patch(void)
 
     // create the timer
     tTimerDef.ptimer = Main_AppTimer;
-    g_tAppTimerId = osTimerCreate(&tTimerDef, osTimerOnce, NULL);
+    g_tAppTimerId = osTimerCreate(&tTimerDef, osTimerPeriodic, NULL);
     if (g_tAppTimerId == NULL)
     {
         printf("To create the timer for AppTimer is fail.\n");
@@ -430,7 +458,7 @@ static void Main_AppThread_1(void *argu)
     {
         // wait the semaphore
         osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
-		printf("Thread 1r\n");
+		printf("Thread 1\r\n");
 		
         // release the mutex
         osMutexRelease(g_tAppMutexId);
