@@ -470,7 +470,7 @@ static void Main_AppThread_2(void *argu)
         printf("Current tick %d\n", osKernelSysTick());
 		
 		if (osKernelSysTick() > 10000) {
-			osSemaphoreDelete(g_tAppSemaphoreId);
+			osMutexDelete(g_tAppMutexId);
 		}
     }
 }
