@@ -380,7 +380,7 @@ static void Main_AppInit_patch(void)
     
     // create the semaphore
     tSemaphoreDef.dummy = 0;                            // reserved, it is no used
-    g_tAppSemaphoreId = osSemaphoreCreate(&tSemaphoreDef, 3);
+    g_tAppSemaphoreId = osSemaphoreCreate(&tSemaphoreDef, 1);
     if (g_tAppSemaphoreId == NULL)
     {
         printf("To create the semaphore for AppSemaphore is fail.\n");
@@ -419,13 +419,13 @@ static void Main_AppInit_patch(void)
 *************************************************************************/
 static void Main_AppThread_1(void *argu)
 {
-	// start the timer
-    osTimerStart(g_tAppTimerId, 2000);      // 2 sec
-	
     // after the initialization, the state of semaphore is released
     // please take the first token, if want to lock the semaphore
     osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
 
+	// start the timer
+    osTimerStart(g_tAppTimerId, 2000);      // 2 sec
+	
     while (1)
     {
         // wait the semaphore
@@ -468,6 +468,10 @@ static void Main_AppThread_2(void *argu)
         
         // output the current tick
         printf("Current tick %d\n", osKernelSysTick());
+		
+		if (osKernelSysTick() > 10000) {
+			osSemaphoreDelete(g_tAppSemaphoreId);
+		}
     }
 }
 
