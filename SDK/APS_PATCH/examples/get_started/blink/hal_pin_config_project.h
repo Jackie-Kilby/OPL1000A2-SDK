@@ -49,7 +49,7 @@ Head Block of The File
 #define HAL_PIN_0_1_UART_MODE       IO01_UART_MODE_AT       // IO01_UART_MODE_AT
                                                             // IO01_UART_MODE_DBG
 // IO type select
-#define HAL_PIN_TYPE_IO_0   PIN_TYPE_UART1_TX       // PIN_TYPE_NONE
+#define HAL_PIN_TYPE_IO_0   PIN_TYPE_UART_APS_TX       // PIN_TYPE_NONE
                                                     // PIN_TYPE_GPIO_INPUT
                                                     // PIN_TYPE_GPIO_OUTPUT_LOW
                                                     // PIN_TYPE_GPIO_OUTPUT_HIGH
@@ -63,7 +63,7 @@ Head Block of The File
                                                     // PIN_TYPE_ICE_M3_DAT
                                                     // PIN_TYPE_ICE_M0_CLK
 
-#define HAL_PIN_TYPE_IO_1   PIN_TYPE_UART1_RX       // PIN_TYPE_NONE
+#define HAL_PIN_TYPE_IO_1   PIN_TYPE_UART_APS_RX       // PIN_TYPE_NONE
                                                     // PIN_TYPE_GPIO_INPUT
                                                     // PIN_TYPE_GPIO_OUTPUT_LOW
                                                     // PIN_TYPE_GPIO_OUTPUT_HIGH
@@ -157,7 +157,7 @@ Head Block of The File
                                                     // PIN_TYPE_ICE_M3_CLK
                                                     // PIN_TYPE_ICE_M0_DAT
 
-#define HAL_PIN_TYPE_IO_8   PIN_TYPE_UART_APS_TX    // PIN_TYPE_NONE
+#define HAL_PIN_TYPE_IO_8   PIN_TYPE_UART1_TX    // PIN_TYPE_NONE
                                                     // PIN_TYPE_GPIO_INPUT
                                                     // PIN_TYPE_GPIO_OUTPUT_LOW
                                                     // PIN_TYPE_GPIO_OUTPUT_HIGH
@@ -171,7 +171,7 @@ Head Block of The File
                                                     // PIN_TYPE_ICE_M3_DAT
                                                     // PIN_TYPE_ICE_M0_CLK
 
-#define HAL_PIN_TYPE_IO_9   PIN_TYPE_UART_APS_RX    // PIN_TYPE_NONE
+#define HAL_PIN_TYPE_IO_9   PIN_TYPE_UART1_RX    // PIN_TYPE_NONE
                                                     // PIN_TYPE_GPIO_INPUT
                                                     // PIN_TYPE_GPIO_OUTPUT_LOW
                                                     // PIN_TYPE_GPIO_OUTPUT_HIGH
