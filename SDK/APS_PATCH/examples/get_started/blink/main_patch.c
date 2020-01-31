@@ -422,7 +422,8 @@ static void Main_AppThread_1(void *argu)
     // after the initialization, the state of semaphore is released
     // please take the first token, if want to lock the semaphore
     osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
-    
+    printf("----Got Semphr!---\r\n");
+	
     // start the timer
     osTimerStart(g_tAppTimerId, 2000);      // 2 sec
     
@@ -432,7 +433,7 @@ static void Main_AppThread_1(void *argu)
         osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
         
         // release the mutex
-        osMutexRelease(g_tAppMutexId);
+//        osMutexRelease(g_tAppMutexId);
     }
 }
 
@@ -455,7 +456,8 @@ static void Main_AppThread_2(void *argu)
     // after the initialization, the state of mutex is released
     // please take the first token, if want to lock the mutex
     osMutexWait(g_tAppMutexId, osWaitForever);
-    
+    printf("----Got Mutex!---\r\n");
+
     while (1)
     {
         // wait the mutex
@@ -483,5 +485,5 @@ static void Main_AppThread_2(void *argu)
 static void Main_AppTimer(void const *argu)
 {
     // release the semaphore
-    osSemaphoreRelease(g_tAppSemaphoreId);
+//    osSemaphoreRelease(g_tAppSemaphoreId);
 }
