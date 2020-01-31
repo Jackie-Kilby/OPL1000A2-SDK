@@ -465,7 +465,7 @@ static void Main_AppThread_2(void *argu)
         printf("Current tick %d\n", osKernelSysTick());
 		
 		if (osKernelSysTick() > 10000) {
-            osThreadTerminate(NULL);
+            osThreadTerminate(g_tAppThread_1);
         }
     }
 }
