@@ -1,0 +1,9 @@
+--cpu Cortex-M3
+".\output\objects\main_patch.o"
+"..\..\..\..\APS\targets\opl1000\object\symdefs.o"
+"..\..\..\..\APS\targets\opl1000\Output\Objects\opl1000_patch_m3.lib"
+"..\..\..\..\APS\targets\opl1000\Output\Objects\opl1000_sdk_m3.lib"
+--library_type=microlib --strict --scatter ".\opl1000_app_m3.sct"
+--datacompressor off --entry=__Patch_EntryPoint --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\Output\Listings\opl1000_app_m3.map" -o .\Output\Objects\opl1000_app_m3.axf
