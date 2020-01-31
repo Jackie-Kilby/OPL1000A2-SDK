@@ -396,7 +396,7 @@ static void Main_AppInit_patch(void)
 
     // create the timer
     tTimerDef.ptimer = Main_AppTimer;
-    g_tAppTimerId = osTimerCreate(&tTimerDef, osTimerPeriodic, NULL);
+    g_tAppTimerId = osTimerCreate(&tTimerDef, osTimerOnce, NULL);
     if (g_tAppTimerId == NULL)
     {
         printf("To create the timer for AppTimer is fail.\n");
@@ -430,11 +430,7 @@ static void Main_AppThread_1(void *argu)
     {
         // wait the semaphore
         osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
-		printf("Thread 1 -1 \r\n");
-		osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
-		printf("Thread 1 -2 \r\n");
-		osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
-		printf("Thread 1 -3 \r\n");
+		printf("Thread 1r\n");
 		
         // release the mutex
         osMutexRelease(g_tAppMutexId);
@@ -468,10 +464,6 @@ static void Main_AppThread_2(void *argu)
         
         // output the current tick
         printf("Current tick %d\n", osKernelSysTick());
-		
-		if (osKernelSysTick() > 10000) {
-			osMutexDelete(g_tAppMutexId);
-		}
     }
 }
 
