@@ -332,32 +332,6 @@ static void Main_FlashLayoutUpdate(void)
 {
     // update here
 }
-static void timer_task(void *argu)  
-{  
-    static int state = 0;  
-    while (1) {  
-        printf("----%d\n", osKernelSysTick());  
-          
-        if (state == 3 && osKernelSysTick() > 40000) {  
-            state = 4;  
-            printf("Timer Start\n");  
-	        osTimerStart(g_tAppTimerId, 2000);   
-	    } else if(state == 2 && osKernelSysTick() > 30000) {  
-            state = 3;  
-			printf("Timer Delete\n");  
-            osTimerDelete(g_tAppTimerId);  
-        } else if (state == 1 && osKernelSysTick() > 20000) {  
-            state = 2;  
-            printf("Timer Start\n");  
-			osTimerStart(g_tAppTimerId, 2000);   
-        } else if(state == 0 && osKernelSysTick() > 10000) {  
-            state = 1;  
-            printf("Timer Stop\n");  
-            osTimerStop(g_tAppTimerId);  
-        }  
-        osDelay(1000);  
-    }  
-}  
 
 /*************************************************************************
 * FUNCTION:
@@ -403,8 +377,6 @@ static void Main_AppInit_patch(void)
     {
         printf("To create the thread for AppThread_2 is fail.\n");
     }
-    
-	xTaskCreate(timer_task, "timer_task", 128, NULL, 0, NULL);
 	
     // create the semaphore
     tSemaphoreDef.dummy = 0;                            // reserved, it is no used
@@ -451,14 +423,15 @@ static void Main_AppThread_1(void *argu)
     // please take the first token, if want to lock the semaphore
     osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
 
+	printf("Start time %d\n", osKernelSysTick());
 	// start the timer
-    osTimerStart(g_tAppTimerId, 2000);      // 2 sec
+    osTimerStart(g_tAppTimerId, 1800000);      // 30mins
 	
     while (1)
     {
         // wait the semaphore
         osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
-		printf("Thread 1\r\n");
+		printf("30 mins passed. Current time %d\r\n", osKernelSysTick());
 		
         // release the mutex
         osMutexRelease(g_tAppMutexId);
