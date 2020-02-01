@@ -425,7 +425,7 @@ static void Main_AppThread_1(void *argu)
 
 	printf("Start time %d\n", osKernelSysTick());
 	// start the timer
-    osTimerStart(g_tAppTimerId, 1800000);      // 30mins
+    osTimerStart(g_tAppTimerId, 43200000);      // half day
 	
     while (1)
     {
