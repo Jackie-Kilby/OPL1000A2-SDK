@@ -143,7 +143,7 @@ Head Block of The File
                                                     // PIN_TYPE_ICE_M3_DAT
                                                     // PIN_TYPE_ICE_M0_CLK
 
-#define HAL_PIN_TYPE_IO_7   PIN_TYPE_NONE           // PIN_TYPE_NONE
+#define HAL_PIN_TYPE_IO_7   PIN_TYPE_GPIO_INPUT           // PIN_TYPE_NONE
                                                     // PIN_TYPE_GPIO_INPUT
                                                     // PIN_TYPE_GPIO_OUTPUT_LOW
                                                     // PIN_TYPE_GPIO_OUTPUT_HIGH
@@ -385,7 +385,7 @@ Head Block of The File
 #define HAL_PIN_DRIVING_IO_4    PIN_DRIVING_FLOAT   // PIN_DRIVING_FLOAT | PIN_DRIVING_HIGH
 #define HAL_PIN_DRIVING_IO_5    PIN_DRIVING_FLOAT   // PIN_DRIVING_FLOAT | PIN_DRIVING_HIGH
 #define HAL_PIN_DRIVING_IO_6    PIN_DRIVING_FLOAT   // PIN_DRIVING_FLOAT | PIN_DRIVING_LOW
-#define HAL_PIN_DRIVING_IO_7    PIN_DRIVING_FLOAT   // PIN_DRIVING_FLOAT | PIN_DRIVING_HIGH
+#define HAL_PIN_DRIVING_IO_7    PIN_DRIVING_HIGH   // PIN_DRIVING_FLOAT | PIN_DRIVING_HIGH
 #define HAL_PIN_DRIVING_IO_8    PIN_DRIVING_FLOAT   // PIN_DRIVING_FLOAT | PIN_DRIVING_LOW
 #define HAL_PIN_DRIVING_IO_9    PIN_DRIVING_HIGH    // PIN_DRIVING_FLOAT | PIN_DRIVING_HIGH
 #define HAL_PIN_DRIVING_IO_10   PIN_DRIVING_FLOAT   // PIN_DRIVING_FLOAT | PIN_DRIVING_HIGH

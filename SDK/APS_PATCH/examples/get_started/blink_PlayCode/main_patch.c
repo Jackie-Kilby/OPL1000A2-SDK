@@ -37,6 +37,7 @@ Head Block of The File
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include "sys_init.h"
 #include "sys_init_patch.h"
 #include "hal_system.h"
@@ -79,10 +80,10 @@ Declaration of Global Variables & Functions
 Declaration of static Global Variables & Functions
 ***************************************************/
 // Sec 6: declaration of static global variable
-static osThreadId g_tAppThread_1;
-static osThreadId g_tAppThread_2;
 static osSemaphoreId g_tAppSemaphoreId_Person;
-static osTimerId g_tAppTimerId;
+static osSemaphoreId g_tAppSemaphoreId_Dispatch;
+static osTimerId g_tAppTimerId_Person;
+static osTimerId g_tAppTimerId_Dispatch;
 static E_IO01_UART_MODE g_eAppIO01UartMode;
 static uint16_t g_bus_location_m = 0;
 
@@ -94,7 +95,8 @@ static void Main_FlashLayoutUpdate(void);
 static void Main_AppInit_patch(void);
 static void Main_AppThread_Bus(void *argu);
 static void Main_AppThread_Person(void *argu);
-static void Main_AppTimer(void const *argu);
+static void Main_AppTimer_Clock(void const *argu);
+static void Main_AppTimer_Dispatch(void const *argu);
 static void Main_MiscDriverConfigSetup(void);
 static void Main_AtUartDbgUartSwitch(void);
 
@@ -356,7 +358,7 @@ static void Main_AppInit_patch(void)
 {
     osThreadDef_t tThreadDef;
     osSemaphoreDef_t tSemaphoreDef;
-    osTimerDef_t tTimerDef;
+    osTimerDef_t tTimerDef_Clock, tTimerDef_Dispatch;
     
     // create the thread for AppThread_Bus
     tThreadDef.name = "App_Bus";
@@ -364,38 +366,26 @@ static void Main_AppInit_patch(void)
     tThreadDef.tpriority = OS_TASK_PRIORITY_APP;        // osPriorityNormal
     tThreadDef.instances = 0;                           // reserved, it is no used
     tThreadDef.stacksize = OS_TASK_STACK_SIZE_APP;      // (512), unit: 4-byte, the size is 512*4 bytes
-    g_tAppThread_1 = osThreadCreate(&tThreadDef, NULL);
-    if (g_tAppThread_1 == NULL)
-    {
-        printf("To create the thread for AppThread_bus is fail.\n");
-    }
+    osThreadCreate(&tThreadDef, NULL);
     
-    // create the thread for AppThread_2
+    // create the thread for AppThread_Person
     tThreadDef.name = "App_Person";
     tThreadDef.pthread = Main_AppThread_Person;
     tThreadDef.tpriority = OS_TASK_PRIORITY_APP;        // osPriorityNormal
     tThreadDef.instances = 0;                           // reserved, it is no used
     tThreadDef.stacksize = OS_TASK_STACK_SIZE_APP;      // (512), unit: 4-byte, the size is 512*4 bytes
-    g_tAppThread_2 = osThreadCreate(&tThreadDef, NULL);
-    if (g_tAppThread_2 == NULL)
-    {
-        printf("To create the thread for AppThread_person is fail.\n");
-    }
-	
+    osThreadCreate(&tThreadDef, NULL);
+    	
     // create the semaphore
     g_tAppSemaphoreId_Person = osSemaphoreCreate(&tSemaphoreDef, 1);
-    if (g_tAppSemaphoreId_Person == NULL)
-    {
-        printf("To create the semaphore for AppSemaphore is fail.\n");
-    }
+	g_tAppSemaphoreId_Dispatch = osSemaphoreCreate(&tSemaphoreDef, 1);
 
     // create the timer
-    tTimerDef.ptimer = Main_AppTimer;
-    g_tAppTimerId = osTimerCreate(&tTimerDef, osTimerOnce, NULL);
-    if (g_tAppTimerId == NULL)
-    {
-        printf("To create the timer for AppTimer is fail.\n");
-    }
+    tTimerDef_Clock.ptimer = Main_AppTimer_Clock;
+    g_tAppTimerId_Person = osTimerCreate(&tTimerDef_Clock, osTimerOnce, NULL);
+	
+	tTimerDef_Dispatch.ptimer = Main_AppTimer_Dispatch;
+    g_tAppTimerId_Dispatch = osTimerCreate(&tTimerDef_Dispatch, osTimerOnce, NULL);
 }
 
 /*************************************************************************
@@ -412,11 +402,30 @@ static void Main_AppInit_patch(void)
 *   none
 *
 *************************************************************************/
+int wait_for_start_by_io (void)
+{
+	return Hal_Vic_GpioInput(GPIO_IDX_07);
+}
 static void Main_AppThread_Bus(void *argu)
 {
+// TRNG implementation
+	while (wait_for_start_by_io())
+	{
+		osDelay(100);
+	}
+		
+	srand(xTaskGetTickCount());
+	uint8_t wait_time_to_dispatch = rand() % 10;
+	osSemaphoreWait(g_tAppSemaphoreId_Dispatch, osWaitForever);		//Take the default Semaphore
+	
+	osTimerStart(g_tAppTimerId_Dispatch, TIME_MINUTE * wait_time_to_dispatch);
+	printf("The bus will take off after %d minutes...\r\n", wait_time_to_dispatch);
+	
+	osSemaphoreWait(g_tAppSemaphoreId_Dispatch, osWaitForever);
+	printf("The bus now leave from Home station.\r\n");
 	g_bus_location_m = 0;
 	//Bus Mission: 20mins 10km, it means 500m/min
-	osTimerStart(g_tAppTimerId, TIME_MINUTE * 15);      //15 secs means 15 mins
+	osTimerStart(g_tAppTimerId_Person, TIME_MINUTE * 15);      //15 secs means 15 mins
 	
     while (1)
     {
@@ -484,7 +493,7 @@ static void Main_AppThread_Person(void *argu)
 
 /*************************************************************************
 * FUNCTION:
-*   Main_AppTimer
+*   Main_AppTimer_Clock
 *
 * DESCRIPTION:
 *   the timeout function of AppTimer
@@ -496,8 +505,13 @@ static void Main_AppThread_Person(void *argu)
 *   none
 *
 *************************************************************************/
-static void Main_AppTimer(void const *argu)
+static void Main_AppTimer_Clock(void const *argu)
 {
     // release the semaphore
     osSemaphoreRelease(g_tAppSemaphoreId_Person);
+}
+
+static void Main_AppTimer_Dispatch(void const *argu)
+{
+	osSemaphoreRelease(g_tAppSemaphoreId_Dispatch);
 }
