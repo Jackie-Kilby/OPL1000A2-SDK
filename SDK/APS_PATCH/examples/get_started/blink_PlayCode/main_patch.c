@@ -53,13 +53,18 @@ Head Block of The File
 #include "boot_sequence.h"
 
 // Sec 2: Constant Definitions, Imported Symbols, miscellaneous
-
+#define TIME_MINUTE 1000
 
 /********************************************
 Declaration of data structure
 ********************************************/
 // Sec 3: structure, uniou, enum, linked list
-
+typedef enum {
+	PREPARE_TO_LEAVE = 0,
+	GOING_TO_STATION,
+	WAIT_FOR_BUS,
+	ON_BUS_IDLE,
+} person_state_t;
 
 /********************************************
 Declaration of Global Variables & Functions
@@ -76,10 +81,10 @@ Declaration of static Global Variables & Functions
 // Sec 6: declaration of static global variable
 static osThreadId g_tAppThread_1;
 static osThreadId g_tAppThread_2;
-static osSemaphoreId g_tAppSemaphoreId;
-static osMutexId g_tAppMutexId;
+static osSemaphoreId g_tAppSemaphoreId_Person;
 static osTimerId g_tAppTimerId;
 static E_IO01_UART_MODE g_eAppIO01UartMode;
+static uint16_t g_bus_location_m = 0;
 
 // Sec 7: declaration of static function prototype
 void __Patch_EntryPoint(void) __attribute__((section("ENTRY_POINT")));
@@ -87,8 +92,8 @@ void __Patch_EntryPoint(void) __attribute__((used));
 static void Main_PinMuxUpdate(void);
 static void Main_FlashLayoutUpdate(void);
 static void Main_AppInit_patch(void);
-static void Main_AppThread_1(void *argu);
-static void Main_AppThread_2(void *argu);
+static void Main_AppThread_Bus(void *argu);
+static void Main_AppThread_Person(void *argu);
 static void Main_AppTimer(void const *argu);
 static void Main_MiscDriverConfigSetup(void);
 static void Main_AtUartDbgUartSwitch(void);
@@ -351,52 +356,42 @@ static void Main_AppInit_patch(void)
 {
     osThreadDef_t tThreadDef;
     osSemaphoreDef_t tSemaphoreDef;
-    osMutexDef_t tMutexDef;
     osTimerDef_t tTimerDef;
     
-    // create the thread for AppThread_1
-    tThreadDef.name = "App_1";
-    tThreadDef.pthread = Main_AppThread_1;
+    // create the thread for AppThread_Bus
+    tThreadDef.name = "App_Bus";
+    tThreadDef.pthread = Main_AppThread_Bus;
     tThreadDef.tpriority = OS_TASK_PRIORITY_APP;        // osPriorityNormal
     tThreadDef.instances = 0;                           // reserved, it is no used
     tThreadDef.stacksize = OS_TASK_STACK_SIZE_APP;      // (512), unit: 4-byte, the size is 512*4 bytes
     g_tAppThread_1 = osThreadCreate(&tThreadDef, NULL);
     if (g_tAppThread_1 == NULL)
     {
-        printf("To create the thread for AppThread_1 is fail.\n");
+        printf("To create the thread for AppThread_bus is fail.\n");
     }
     
     // create the thread for AppThread_2
-    tThreadDef.name = "App_2";
-    tThreadDef.pthread = Main_AppThread_2;
+    tThreadDef.name = "App_Person";
+    tThreadDef.pthread = Main_AppThread_Person;
     tThreadDef.tpriority = OS_TASK_PRIORITY_APP;        // osPriorityNormal
     tThreadDef.instances = 0;                           // reserved, it is no used
     tThreadDef.stacksize = OS_TASK_STACK_SIZE_APP;      // (512), unit: 4-byte, the size is 512*4 bytes
     g_tAppThread_2 = osThreadCreate(&tThreadDef, NULL);
     if (g_tAppThread_2 == NULL)
     {
-        printf("To create the thread for AppThread_2 is fail.\n");
+        printf("To create the thread for AppThread_person is fail.\n");
     }
 	
     // create the semaphore
-    tSemaphoreDef.dummy = 0;                            // reserved, it is no used
-    g_tAppSemaphoreId = osSemaphoreCreate(&tSemaphoreDef, 1);
-    if (g_tAppSemaphoreId == NULL)
+    g_tAppSemaphoreId_Person = osSemaphoreCreate(&tSemaphoreDef, 1);
+    if (g_tAppSemaphoreId_Person == NULL)
     {
         printf("To create the semaphore for AppSemaphore is fail.\n");
-    }
-    
-    // create the mutex
-    tMutexDef.dummy = 0;                                // reserved, it is no used
-    g_tAppMutexId = osMutexCreate(&tMutexDef);
-    if (g_tAppMutexId == NULL)
-    {
-        printf("To create the mutex for AppMutex is fail.\n");
     }
 
     // create the timer
     tTimerDef.ptimer = Main_AppTimer;
-    g_tAppTimerId = osTimerCreate(&tTimerDef, osTimerPeriodic, NULL);
+    g_tAppTimerId = osTimerCreate(&tTimerDef, osTimerOnce, NULL);
     if (g_tAppTimerId == NULL)
     {
         printf("To create the timer for AppTimer is fail.\n");
@@ -405,10 +400,10 @@ static void Main_AppInit_patch(void)
 
 /*************************************************************************
 * FUNCTION:
-*   Main_AppThread_1
+*   Main_AppThread_Bus
 *
 * DESCRIPTION:
-*   the application thread 1
+*   the application thread of bus
 *
 * PARAMETERS
 *   1. argu     : [In] the input argument
@@ -417,33 +412,25 @@ static void Main_AppInit_patch(void)
 *   none
 *
 *************************************************************************/
-static void Main_AppThread_1(void *argu)
+static void Main_AppThread_Bus(void *argu)
 {
-    // after the initialization, the state of semaphore is released
-    // please take the first token, if want to lock the semaphore
-    osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
-
-	printf("Start time %d\n", osKernelSysTick());
-	// start the timer
-    osTimerStart(g_tAppTimerId, 43200000);      // half day
+	g_bus_location_m = 0;
+	//Bus Mission: 20mins 10km, it means 500m/min
+	osTimerStart(g_tAppTimerId, TIME_MINUTE * 15);      //15 secs means 15 mins
 	
     while (1)
     {
-        // wait the semaphore
-        osSemaphoreWait(g_tAppSemaphoreId, osWaitForever);
-		printf("30 mins passed. Current time %d\r\n", osKernelSysTick());
-		
-        // release the mutex
-        osMutexRelease(g_tAppMutexId);
+		g_bus_location_m += 500;
+		osDelay(TIME_MINUTE);
     }
 }
 
 /*************************************************************************
 * FUNCTION:
-*   Main_AppThread_2
+*   Main_AppThread_Person
 *
 * DESCRIPTION:
-*   the application thread 2
+*   the application thread of person
 *
 * PARAMETERS
 *   1. argu     : [In] the input argument
@@ -452,19 +439,46 @@ static void Main_AppThread_1(void *argu)
 *   none
 *
 *************************************************************************/
-static void Main_AppThread_2(void *argu)
-{
-    // after the initialization, the state of mutex is released
-    // please take the first token, if want to lock the mutex
-    osMutexWait(g_tAppMutexId, osWaitForever);
+static void Main_AppThread_Person(void *argu)
+{   
+	static person_state_t person_state = PREPARE_TO_LEAVE;
+	int16_t distance = 300;
+	
+	osSemaphoreWait(g_tAppSemaphoreId_Person, osWaitForever);		//Take the default Semaphore
+	
+    while (1) {
+		switch (person_state) {  
+			case PREPARE_TO_LEAVE:
+				// wait the mutex	
+				osSemaphoreWait(g_tAppSemaphoreId_Person, osWaitForever);		//Go outdoors
+				printf("[%d]Go Now!!!\r\n", osKernelSysTick());
+				person_state = GOING_TO_STATION; 
+				osDelay(500);			//It took 30secs(0.5s) to close the door.
+			break;
 
-    while (1)
-    {
-        // wait the mutex
-        osMutexWait(g_tAppMutexId, osWaitForever);
-        
-        // output the current tick
-        printf("Current tick %d\n", osKernelSysTick());
+			case GOING_TO_STATION:
+				//Distance(300m/5min) --
+				distance -= 60;
+				if (distance > 0) {
+					osDelay(1000);
+				} else {
+					person_state = WAIT_FOR_BUS;
+				}
+				break;
+			
+			case WAIT_FOR_BUS:
+				if (g_bus_location_m < 10000) {
+					osDelay(1000);
+				} else {
+					printf("[%d]Get on bus now!!!\r\n", osKernelSysTick());
+					person_state = ON_BUS_IDLE;
+				}
+				break;
+				
+			case ON_BUS_IDLE:
+				osDelay(5000);
+			    break;    
+		}
     }
 }
 
@@ -485,5 +499,5 @@ static void Main_AppThread_2(void *argu)
 static void Main_AppTimer(void const *argu)
 {
     // release the semaphore
-    osSemaphoreRelease(g_tAppSemaphoreId);
+    osSemaphoreRelease(g_tAppSemaphoreId_Person);
 }
