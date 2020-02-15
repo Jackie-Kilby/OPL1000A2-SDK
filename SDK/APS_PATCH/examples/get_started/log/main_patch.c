@@ -538,7 +538,7 @@ static void Main_AppThread_1(void *argu)
     uint32_t ulCount = 0; 
     while (1)
     {
-        printf("demo_app1: %d\r\n",ulCount);
+        printf("\033[41;4m demo_app1: %d\033[0m\r\n",ulCount);
         osDelay(2000);      // delay 1000ms (1sec)
         ulCount++;
     }
@@ -599,23 +599,23 @@ static void Main_AppThread_2(void *argu)
             // indicate WIFI AP connection procedure is finished. 
             if ((g_execution_count%4) == 2)
             {
-                printf("demo_app2: Enable ROM internal module log output \r\n");
-                // enable ROM internal module log output 
-                Internal_Module_Log_Config(true);
+//                printf("demo_app2: Enable ROM internal module log output \r\n");
+//                // enable ROM internal module log output 
+//                Internal_Module_Log_Config(true);
 
-                printf("demo_app2: Enable user demo_app1 log output \r\n");
+                printf("-----demo_app2: Enable user demo_app1 log output \r\n");
                 // enable user demo_app1 log output                 
-//                App_Log_Config(USER_APP1_LOG,"demo_app1",LOG_ALL_LEVEL);                
+                App_Log_Config(USER_APP1_LOG,"demo_app1",LOG_ALL_LEVEL);                
             }
             else if ((g_execution_count%4) == 0)
             {
-                printf("demo_app2: Disable ROM internal module log output \r\n");
-                // disable ROM internal module log output
-                Internal_Module_Log_Config(false);
+//                printf("demo_app2: Disable ROM internal module log output \r\n");
+//                // disable ROM internal module log output
+//                Internal_Module_Log_Config(false);
 
-                printf("demo_app2: Disable user demo_app1 log output \r\n");
+                printf("-----demo_app2: Disable user demo_app1 log output \r\n");
                 // disable user demo_app1 log output 
-//                App_Log_Config(USER_APP1_LOG,"demo_app1",LOG_NONE_LEVEL);                
+                App_Log_Config(USER_APP1_LOG,"demo_app1",LOG_NONE_LEVEL);                
             }
 
             // Send message to WIFI user_app thread, let it begin another Scan->connect procedure 
