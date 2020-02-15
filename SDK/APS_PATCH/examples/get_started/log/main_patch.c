@@ -72,11 +72,8 @@ Declaration of Global Variables & Functions
 ********************************************/
 // Sec 4: declaration of global variable
 
-T_TracerTaskInfoExt g_taTracerIntTaskInfoBodyExt[TRACER_INT_TASK_NUM_MAX] = {0};
-T_TracerTaskInfoExt g_taTracerExtTaskInfoBodyExt[TRACER_EXT_TASK_NUM_MAX] = {0};
-
 extern T_TracerTaskInfoExt g_taTracerDefIntTaskInfoBody[TRACER_INT_TASK_NUM_MAX];
-
+extern T_TracerTaskInfoExt g_taTracerExtTaskInfoBody[TRACER_EXT_TASK_NUM_MAX];
 
 // Sec 5: declaration of global function prototype
 typedef void (*T_Main_AppInit_fp)(void);
@@ -151,8 +148,8 @@ void Internal_Module_Log_Set(char* module_name, bool on_off_set)
 void App_Log_Config(uint8_t log_idx, char* app_name , uint8_t level_set)
 {
     //user log
-    g_taTracerExtTaskInfoBodyExt[log_idx].bLevel = level_set;
-    strcpy(g_taTracerExtTaskInfoBodyExt[log_idx].baName,app_name);
+	g_taTracerExtTaskInfoBody[log_idx].bLevel = level_set;
+    strcpy(g_taTracerExtTaskInfoBody[log_idx].baName,app_name);
 }
 
 void Internal_Module_Log_Config(bool on_off_set)
