@@ -154,9 +154,7 @@ void App_Log_Config(uint8_t log_idx, char* app_name , uint8_t level_set)
 
 void Internal_Module_Log_Config(bool on_off_set)
 {
-    Internal_Module_Log_Set("opl_wifi_mac",on_off_set);			
-    Internal_Module_Log_Set("opl_controller_task",on_off_set);
-    Internal_Module_Log_Set("opl_event_loop",on_off_set);	
+	Internal_Module_Log_Set(OS_TASK_NAME_DIAG, on_off_set);
 }
 
 /*************************************************************************
@@ -429,9 +427,24 @@ static void Main_AppInit_patch(void)
     // Enable APS Uart log information output 
     Hal_DbgUart_RxIntEn(1);
     
-    tracer_log_level_set_ext(2, LOG_ALL_LEVEL);
-    tracer_log_level_set_ext(4, LOG_ALL_LEVEL);
-    tracer_log_level_set_ext(6, LOG_ALL_LEVEL);	
+	tracer_log_level_set_ext(0, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(1, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(2, LOG_NONE_LEVEL);
+	tracer_log_level_set_ext(3, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(4, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(5, LOG_NONE_LEVEL);
+	tracer_log_level_set_ext(6, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(7, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(8, LOG_NONE_LEVEL);
+	tracer_log_level_set_ext(9, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(10, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(11, LOG_NONE_LEVEL);
+	tracer_log_level_set_ext(12, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(13, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(14, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(15, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(16, LOG_NONE_LEVEL);
+    tracer_log_level_set_ext(17, LOG_NONE_LEVEL);
 	
     // Log example executin, create two thread 
     User_Demo();
