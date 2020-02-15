@@ -156,11 +156,10 @@ void App_Log_Config(uint8_t log_idx, char* app_name , uint8_t level_set)
 }
 
 void Internal_Module_Log_Config(bool on_off_set)
-{   
-	  
-    Internal_Module_Log_Set("opl_wifi_mac",true);			
-    Internal_Module_Log_Set("opl_controller_task",true);
-    Internal_Module_Log_Set("opl_event_loop",true);	
+{
+    Internal_Module_Log_Set("opl_wifi_mac",on_off_set);			
+    Internal_Module_Log_Set("opl_controller_task",on_off_set);
+    Internal_Module_Log_Set("opl_event_loop",on_off_set);	
 }
 
 /*************************************************************************
@@ -431,7 +430,7 @@ static void Main_ApsUartRxDectecCb(E_GpioIdx_t tGpioIdx)
 static void Main_AppInit_patch(void)
 {
     // Enable APS Uart log information output 
-    Hal_DbgUart_RxIntEn(1);   
+    Hal_DbgUart_RxIntEn(1);
     
     tracer_log_level_set_ext(2, LOG_ALL_LEVEL);
     tracer_log_level_set_ext(4, LOG_ALL_LEVEL);
@@ -601,7 +600,7 @@ static void Main_AppThread_2(void *argu)
             }
 
             // indicate WIFI AP connection procedure is finished. 
-            if ((g_execution_count%2) == 1)
+            if ((g_execution_count%4) == 2)
             {
                 printf("demo_app2: Enable ROM internal module log output \r\n");
                 // enable ROM internal module log output 
@@ -609,9 +608,9 @@ static void Main_AppThread_2(void *argu)
 
                 printf("demo_app2: Enable user demo_app1 log output \r\n");
                 // enable user demo_app1 log output                 
-                App_Log_Config(USER_APP1_LOG,"demo_app1",LOG_ALL_LEVEL);                
+//                App_Log_Config(USER_APP1_LOG,"demo_app1",LOG_ALL_LEVEL);                
             }
-            else 
+            else if ((g_execution_count%4) == 0)
             {
                 printf("demo_app2: Disable ROM internal module log output \r\n");
                 // disable ROM internal module log output
@@ -619,7 +618,7 @@ static void Main_AppThread_2(void *argu)
 
                 printf("demo_app2: Disable user demo_app1 log output \r\n");
                 // disable user demo_app1 log output 
-                App_Log_Config(USER_APP1_LOG,"demo_app1",LOG_NONE_LEVEL);                
+//                App_Log_Config(USER_APP1_LOG,"demo_app1",LOG_NONE_LEVEL);                
             }
 
             // Send message to WIFI user_app thread, let it begin another Scan->connect procedure 
