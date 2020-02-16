@@ -24,6 +24,13 @@
 // Sec 2: Constant Definitions, Imported Symbols, miscellaneous
 #define WIFI_READY_TIME 2000
 
+//#define DEBUG_ENABLE
+#ifdef DEBUG_ENABLE
+#define LOG(fmt, arg...)    printf("[WIFI] "fmt, ##arg)
+#else
+#define LOG(fmt, arg...)
+#endif
+
 
 osThreadId g_tAppThread_wifi;
 
@@ -244,7 +251,7 @@ void WifiAppInit(void)
     }
     else
     {
-        printf("user_app Task create successful \r\n");
+        LOG("user_app Task create successful \r\n");
     }
     
     // create the message queue for AppMessageQ
@@ -258,7 +265,7 @@ void WifiAppInit(void)
     }
     else
     {
-        printf("To create the message queue for g_tWifiAppMessageQ successful \r\n");
+        LOG("To create the message queue for g_tWifiAppMessageQ successful \r\n");
     }
     
     // create the memory pool for AppMessageQ
@@ -272,7 +279,7 @@ void WifiAppInit(void)
     }      
     else
     {
-        printf("To create the memory pool for g_tWifiAppMemPoolId successful \r\n");
+        LOG("To create the memory pool for g_tWifiAppMemPoolId successful \r\n");
     }
     
 }
