@@ -434,7 +434,9 @@ static void Main_AppInit_patch(void)
 	tracer_log_level_set_ext(3, LOG_NONE_LEVEL);
     tracer_log_level_set_ext(4, LOG_NONE_LEVEL);
     tracer_log_level_set_ext(5, LOG_NONE_LEVEL);
-	tracer_log_level_set_ext(6, LOG_NONE_LEVEL);
+	tracer_log_level_set_ext(6, LOG_ALL_LEVEL);			//or one of the next 2 sentence
+//	Internal_Module_Log_Set(OS_TASK_NAME_EVENT_LOOP, true);
+//	Internal_Module_Log_Set("opl_event_loop", true);
     tracer_log_level_set_ext(7, LOG_NONE_LEVEL);
     tracer_log_level_set_ext(8, LOG_NONE_LEVEL);
 	tracer_log_level_set_ext(9, LOG_NONE_LEVEL);

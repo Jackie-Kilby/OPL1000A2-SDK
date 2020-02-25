@@ -324,7 +324,7 @@ osStatus wifi_AppMessageQSend(S_MessageQ *ptMsg, osMessageQId message_id, osPool
         osPoolFree(pool_id, ptMsgPool);
         goto done;
     }
-    
+    osPoolFree(pool_id, ptMsgPool);
     tRet = osOK;
 
 done:
